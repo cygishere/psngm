@@ -1,7 +1,11 @@
-#include <stdio.h>
+#include <curses.h>
 
 int
 main (void)
 {
-  printf ("hello\n");
+  initscr ();
+  printw ("Hwllo, olrd");
+  refresh ();
+  getch ();
+  endwin ();
 }
