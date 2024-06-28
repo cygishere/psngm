@@ -1,0 +1,56 @@
+#+title: psn-gm - Prisoner's Game
+* Description
+This project creates a scenario where two agents must cooperate in order
+to survive.
+* Games
+** g#1
+2 agents living in 2 seperate rooms, like this:
+#+begin_src text
+############	
+#...a...<..#
+############
+#.......b..#
+############
+#+end_src
+'#' is wall, '.' is ground, 'a' is agent a, 'b' is agent b,
+'<' is left signal, '>' is right signal.
+
+Agents' memory capacity: 1 byte
+All states read from the agents' viewpoint should come from this memory.
+Sensors should write to this memory too.
+
+Agents can perform 4 actions in 1 turn:
+- move:  left, right, none
+- detect: left, right, none
+- listen to scream
+- scream or silent (scream can be heard by other agents)
+Wall stops agents from moving, if an agent is going to move into  a wall, the movement will have no effect.
+
+Both agents will be erased if they did not perform the follow action:
+At turn 20, b should be in b's secret position.
+b's secret position is indicated by the signal in a's environment.
+If there is a left signal, b's secret postion is the far left, otherwise the far right.
+
+Test Scenarios
+*** s#1
+- agent a
+  ai controled bot.
+- agent b
+  Programmed bot.
+  Listen to scream, go right if heard scream, go left if heard silence.
+
+*** s#2
+- agent a
+  ai controled bot.
+- agent b
+  Programmed bot.
+  Listen to scream, go left if heard scream, go right if heard silence.
+
+*** s#3
+- agent a
+  Programmed bot.
+  First go left, if detect '<', stop moving and scream until end of life.
+  If detect '#', go right from then on.
+- agent b
+  ai controled bot.
+
