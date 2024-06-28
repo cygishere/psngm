@@ -31,9 +31,8 @@ Both agents will be erased if they did not perform the follow action:
 At turn 20, b should be in b's secret position.
 b's secret position is indicated by the signal in a's environment.
 If there is a left signal, b's secret postion is the far left, otherwise the far right.
-
-Test Scenarios
-*** s#1
+*** Test Scenarios
+**** s#1
 - agent a
 
   ai controled bot.
@@ -42,7 +41,7 @@ Test Scenarios
   Programmed bot.
   Listen to scream, go right if heard scream, go left if heard silence.
 
-*** s#2
+**** s#2
 - agent a
 
   ai controled bot.
@@ -52,7 +51,7 @@ Test Scenarios
   Programmed bot.
   Listen to scream, go left if heard scream, go right if heard silence.
 
-*** s#3
+**** s#3
 - agent a
 
   Programmed bot.
