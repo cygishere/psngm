@@ -7,13 +7,12 @@ static const int psn_room_length = 8;
 
 struct game
 {
-  int player_controled_agent_id; /* 0 for no agent, 1 for a, 2 for b */
-  int pos_a;
-  int pos_b;
+  int player_controled_agent_id; /* -1 for no agent, 0 for a, 1 for b */
+  int pos[2];
 };
 
-void move_left (struct game *game);
-void move_right (struct game *game);
+void move_left (struct game *game, int agent_id);
+void move_right (struct game *game, int agent_id);
 
 void print_room_wall (int length);
 void print_room_space (int length);
@@ -37,7 +36,7 @@ main (void)
     {
       /* Get user input */
       struct agent_action act = { 0 };
-      act.agent_id = 1;
+      act.agent_id = 0;
       ch = getch ();
       switch (ch)
         {
@@ -59,15 +58,15 @@ main (void)
       /* Programmed agents decide action */
 
       /* Game take action */
-      if (act.agent_id == 1)
+      if (act.agent_id == 0)
         {
           switch (act.move)
             {
             case AAM_RIGHT:
-              move_right (&game);
+              move_right (&game, act.agent_id);
               break;
             case AAM_LEFT:
-              move_left (&game);
+              move_left (&game, act.agent_id);
               break;
             default:
               break;
@@ -89,24 +88,24 @@ quit_game:
 }
 
 void
-move_left (struct game *game)
+move_left (struct game *game, int agent_id)
 {
-  if (game->pos_a == 0)
+  if (game->pos[agent_id] == 0)
     {
       return;
     }
-  game->pos_a--;
+  game->pos[agent_id]--;
   return;
 }
 
 void
-move_right (struct game *game)
+move_right (struct game *game, int agent_id)
 {
-  if (game->pos_a == psn_room_length - 1)
+  if (game->pos[agent_id] == psn_room_length - 1)
     {
       return;
     }
-  game->pos_a++;
+  game->pos[agent_id]++;
   return;
 }
 
@@ -126,8 +125,8 @@ print_frame (struct game game)
   move (4, 0);
   print_room_wall (psn_room_length);
 
-  mvaddch (1, game.pos_a + 1, 'a');
-  mvaddch (3, game.pos_b + 1, 'b');
+  mvaddch (1, game.pos[0] + 1, 'a');
+  mvaddch (3, game.pos[1] + 1, 'b');
 
   refresh ();
 }
