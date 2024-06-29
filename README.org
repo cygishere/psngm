@@ -20,10 +20,10 @@ Agents' memory capacity: 1 byte
 All states read from the agents' viewpoint should come from this memory.
 Sensors should write to this memory too.
 
-Agents can perform 4 actions in 1 turn:
-- move:  left, right, none
+Agents must perform 4 actions in 1 turn:
 - detect: left, right, none
 - listen to scream
+- move:  left, right, none
 - scream or silent (scream can be heard by other agents)
 Wall stops agents from moving, if an agent is going to move into  a wall, the movement will have no effect.
 
