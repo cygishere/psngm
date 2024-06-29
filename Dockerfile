@@ -3,11 +3,9 @@ FROM debian:bookworm-slim
 WORKDIR /psngm
 
 RUN apt-get update && apt-get install --yes --no-install-recommends \
-  build-essential curl gcc make automake autoconf pkg-config \
+  gcc make automake autoconf pkg-config \
   libncurses-dev
   
+COPY . /psngm
 
-COPY src/ ./src/
-COPY configure.ac Makefile.am ./
-
-RUN autoreconf -vi && ./configure && make
+RUN autoreconf -i && ./configure && make
