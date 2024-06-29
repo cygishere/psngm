@@ -1,8 +1,8 @@
 bin_PROGRAMS = psngm
 
 psngm_SOURCES = \
-  src/main.c
-
+  src/main.c \
+  src/agent.c
 
 psngm_CFLAGS = $(shell pkg-config --cflags ncurses)
 

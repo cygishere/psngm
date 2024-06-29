@@ -1,10 +1,13 @@
 #include <assert.h>
 #include <curses.h>
 
+#include "agent.h"
+
 static const int psn_room_length = 8;
 
 struct game
 {
+  int player_controled_agent_id; /* 0 for no agent, 1 for a, 2 for b */
   int pos_a;
   int pos_b;
 };
@@ -32,25 +35,56 @@ main (void)
   int ch;
   while (1)
     {
+      /* Get user input */
+      struct agent_action act = { 0 };
+      act.agent_id = 1;
       ch = getch ();
       switch (ch)
         {
-        case 'q':
-          goto quitpsn;
         case KEY_LEFT:
         case 'h':
-          move_left (&game);
+          act.move = AAM_LEFT;
           break;
         case KEY_RIGHT:
         case 'l':
-          move_right (&game);
+          act.move = AAM_RIGHT;
           break;
+        case 'n':
+          act.scream = (act.scream == AAS_SKIP ? AAS_SCREAM : AAS_SKIP);
+          break;
+        case 'q':
+          goto quit_game;
         }
 
+      /* Programmed agents decide action */
+
+      /* Game take action */
+      if (act.agent_id == 1)
+        {
+          switch (act.move)
+            {
+            case AAM_RIGHT:
+              move_right (&game);
+              break;
+            case AAM_LEFT:
+              move_left (&game);
+              break;
+            default:
+              break;
+            }
+          switch (act.scream)
+            {
+            case AAS_SCREAM:
+              break;
+            default:
+              break;
+            }
+        }
+      /* Render */
       print_frame (game);
     }
 
-quitpsn:
+quit_game:
   endwin ();
 }
 
@@ -84,13 +118,11 @@ print_frame (struct game game)
 
   move (1, 0);
   print_room_space (psn_room_length);
-
   move (2, 0);
   print_room_wall (psn_room_length);
 
   move (3, 0);
   print_room_space (psn_room_length);
-
   move (4, 0);
   print_room_wall (psn_room_length);
 
