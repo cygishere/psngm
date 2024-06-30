@@ -18,7 +18,6 @@ enum agent_action_scream
 
 struct agent_action
 {
-  int agent_id;
   enum agent_action_move move;
   enum agent_action_scream scream;
 };

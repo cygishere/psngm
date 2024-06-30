@@ -6,6 +6,7 @@
 #include "agent.h"
 #include "int.h"
 #include "map.h"
+#include "mem.h"
 
 static const int psn_room_length = 8;
 
@@ -13,6 +14,8 @@ struct game
 {
   int player_controled_agent_id; /* -1 for no agent, 0 for a, 1 for b */
   struct map map;
+  struct mem8 mem_agents[2];
+  struct agent_action act_agents[2];
   bool is_display_room;
 };
 
@@ -62,46 +65,48 @@ main (void)
           print_agent_senses (sense);
         }
       /* Get user input */
-      struct agent_action act = { 0 };
-      act.agent_id = 0;
-      ch = getch ();
-      switch (ch)
-        {
-        case KEY_LEFT:
-        case 'h':
-          act.move = AAM_LEFT;
-          break;
-        case KEY_RIGHT:
-        case 'l':
-          act.move = AAM_RIGHT;
-          break;
-        case 'n':
-          act.scream = (act.scream == AAS_SKIP ? AAS_SCREAM : AAS_SKIP);
-          break;
-        case 't':
-          game.is_display_room = !game.is_display_room;
-          break;
-        case 'q':
-          goto quit_game;
-        }
-
+      {
+        struct agent_action *act
+            = &game.act_agents[game.player_controled_agent_id];
+        ch = getch ();
+        switch (ch)
+          {
+          case KEY_LEFT:
+          case 'h':
+            act->move = AAM_LEFT;
+            break;
+          case KEY_RIGHT:
+          case 'l':
+            act->move = AAM_RIGHT;
+            break;
+          case 'n':
+            act->scream = (act->scream == AAS_SKIP ? AAS_SCREAM : AAS_SKIP);
+            break;
+          case 't':
+            game.is_display_room = !game.is_display_room;
+            break;
+          case 'q':
+            goto quit_game;
+          }
+      }
       /* Programmed agents decide action */
 
       /* Game take action */
-      if (act.agent_id == 0)
+      for (int i = 0; i < 2; ++i)
         {
-          switch (act.move)
+          struct agent_action *act = &game.act_agents[i];
+          switch (act->move)
             {
             case AAM_RIGHT:
-              move_right (&game, act.agent_id);
+              move_right (&game, i);
               break;
             case AAM_LEFT:
-              move_left (&game, act.agent_id);
+              move_left (&game, i);
               break;
             default:
               break;
             }
-          switch (act.scream)
+          switch (act->scream)
             {
             case AAS_SCREAM:
               break;
