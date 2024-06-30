@@ -4,6 +4,7 @@
 #include <stdbool.h>
 
 #include "agent.h"
+#include "int.h"
 #include "map.h"
 
 static const int psn_room_length = 8;
@@ -42,9 +43,9 @@ main (void)
       struct agent_senses sense = { 0 };
       {
         int id = game.player_controled_agent_id;
-        unsigned int x = game.map.pos_agent[sense.agent_id].x;
-        unsigned int y = game.map.pos_agent[sense.agent_id].y;
-        unsigned int z = game.map.pos_agent[sense.agent_id].z;
+        uint x = game.map.pos_agent[sense.agent_id].x;
+        uint y = game.map.pos_agent[sense.agent_id].y;
+        uint z = game.map.pos_agent[sense.agent_id].z;
         sense.agent_id = id;
         sense.left_obj = map_get_content_at (
             game.map, (struct pos){ .x = x - 1, .y = y, .z = z });
@@ -152,11 +153,11 @@ print_room (struct game game)
   assert (game.map.width <= INT_MAX && "game.map.width cannot cast to int");
   assert (game.map.length <= INT_MAX && "game.map.length cannot cast to int");
 
-  for (unsigned int z = 0; z < game.map.height; ++z)
+  for (uint z = 0; z < game.map.height; ++z)
     {
-      for (unsigned int y = 0; y < game.map.width; ++y)
+      for (uint y = 0; y < game.map.width; ++y)
         {
-          for (unsigned int x = 0; x < game.map.length; ++x)
+          for (uint x = 0; x < game.map.length; ++x)
             {
               chtype c = (chtype)map_get_content_at (
                   game.map, (struct pos){ .x = x, .y = y, .z = z });
