@@ -7,14 +7,14 @@
   outputs = { self, nixpkgs, flake-utils }:
     flake-utils.lib.eachDefaultSystem (system:
       let
-        name = "psngm";
+        pname = "psngm";
         version = "0.0.0";
         src = ./.;
         pkgs = nixpkgs.legacyPackages.${system};
       in {
         packages = {
           default = pkgs.stdenv.mkDerivation rec {
-            inherit name src;
+            inherit pname version src;
 
             buildInputs = with pkgs; [ automake autoconf pkg-config ncurses ];
 
@@ -22,13 +22,7 @@
               autoreconf -i && ./configure --prefix=$out 
             '';
 
-            buildPhase = ''
-              make
-            '';
-
-            installPhase = ''
-              make install
-            '';
+            dontStrip = true;
           };
         };
       });
