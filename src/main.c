@@ -1,5 +1,6 @@
 #include <assert.h>
 #include <curses.h>
+#include <stdbool.h>
 
 #include "agent.h"
 
@@ -8,15 +9,19 @@ static const int psn_room_length = 8;
 struct game
 {
   int player_controled_agent_id; /* -1 for no agent, 0 for a, 1 for b */
-  int pos[2];
+  int agent_pos[2];
+  bool is_display_room;
 };
 
 void move_left (struct game *game, int agent_id);
 void move_right (struct game *game, int agent_id);
+void sense (struct game);
 
 void print_room_wall (int length);
 void print_room_space (int length);
-void print_frame (struct game game);
+void print_room (struct game game);
+
+void print_agent_senses (struct game game, struct agent_senses sense);
 
 int
 main (void)
@@ -29,11 +34,25 @@ main (void)
 
   struct game game = { 0 };
 
-  print_frame (game);
-
   int ch;
   while (1)
     {
+      /* Fill agent sense */
+      struct agent_senses sense = { 0 };
+      sense.agent_id = game.player_controled_agent_id;
+      sense.left_obj = game.agent_pos[sense.agent_id] == 0 ? '#' : '.';
+      sense.right_obj
+          = game.agent_pos[sense.agent_id] == psn_room_length - 1 ? '#' : '.';
+
+      /* Render */
+      if (game.is_display_room)
+        {
+          print_room (game);
+        }
+      else
+        {
+          print_agent_senses (game, sense);
+        }
       /* Get user input */
       struct agent_action act = { 0 };
       act.agent_id = 0;
@@ -50,6 +69,9 @@ main (void)
           break;
         case 'n':
           act.scream = (act.scream == AAS_SKIP ? AAS_SCREAM : AAS_SKIP);
+          break;
+        case 't':
+          game.is_display_room = !game.is_display_room;
           break;
         case 'q':
           goto quit_game;
@@ -79,8 +101,6 @@ main (void)
               break;
             }
         }
-      /* Render */
-      print_frame (game);
     }
 
 quit_game:
@@ -90,27 +110,27 @@ quit_game:
 void
 move_left (struct game *game, int agent_id)
 {
-  if (game->pos[agent_id] == 0)
+  if (game->agent_pos[agent_id] == 0)
     {
       return;
     }
-  game->pos[agent_id]--;
+  game->agent_pos[agent_id]--;
   return;
 }
 
 void
 move_right (struct game *game, int agent_id)
 {
-  if (game->pos[agent_id] == psn_room_length - 1)
+  if (game->agent_pos[agent_id] == psn_room_length - 1)
     {
       return;
     }
-  game->pos[agent_id]++;
+  game->agent_pos[agent_id]++;
   return;
 }
 
 void
-print_frame (struct game game)
+print_room (struct game game)
 {
   clear ();
   print_room_wall (psn_room_length);
@@ -125,8 +145,8 @@ print_frame (struct game game)
   move (4, 0);
   print_room_wall (psn_room_length);
 
-  mvaddch (1, game.pos[0] + 1, 'a');
-  mvaddch (3, game.pos[1] + 1, 'b');
+  mvaddch (1, game.agent_pos[0] + 1, 'a');
+  mvaddch (3, game.agent_pos[1] + 1, 'b');
 
   refresh ();
 }
@@ -151,4 +171,17 @@ print_room_space (int length)
       addch ('.');
     }
   addch ('#');
+}
+
+void
+print_agent_senses (struct game game, struct agent_senses sense)
+{
+  clear ();
+  printw ("agent id: %d", sense.agent_id);
+  move (1, 0);
+  printw ("left obj: '%c'", sense.left_obj);
+  move (2, 0);
+  printw ("right obj: '%c'", sense.right_obj);
+  move (3, 0);
+  printw ("heard scream: %s", sense.heard_scream ? "yes" : "no");
 }
