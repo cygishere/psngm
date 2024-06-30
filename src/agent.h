@@ -3,6 +3,8 @@
 
 #include <stdbool.h>
 
+#include "int.h"
+
 enum agent_action_move
 {
   AAM_SKIP = 0,
@@ -24,15 +26,9 @@ struct agent_action
 
 struct agent_senses
 {
-  int agent_id;
   char left_obj;
   char right_obj;
   bool heard_scream;
-};
-
-struct agent_memory
-{
-  char mem;
 };
 
 #endif /* AGENT_H */

@@ -8,7 +8,18 @@
 #include "map.h"
 #include "mem.h"
 
+static const u8 type_what = 0x00;
+static const u8 type_wall = 0x01;
+static const u8 type_empty = 0x02;
+
 static const int psn_room_length = 8;
+
+enum game_display_mode
+{
+  GDM_MEMORY = 0,
+  GDM_SENSES,
+  GDM_ROOM
+};
 
 struct game
 {
@@ -16,15 +27,16 @@ struct game
   struct map map;
   struct mem8 mem_agents[2];
   struct agent_action act_agents[2];
-  bool is_display_room;
+  enum game_display_mode display_mode;
 };
 
 void move_left (struct game *game, int agent_id);
 void move_right (struct game *game, int agent_id);
-void sense (struct game);
+void sense (struct game *game, int agent_id);
 
 void print_room (struct game game);
 
+void print_agent_memory (struct mem8 mem);
 void print_agent_senses (struct agent_senses sense);
 
 int
@@ -42,27 +54,33 @@ main (void)
   int ch;
   while (1)
     {
-      /* Fill agent sense */
-      struct agent_senses sense = { 0 };
-      {
-        int id = game.player_controled_agent_id;
-        uint x = game.map.pos_agent[sense.agent_id].x;
-        uint y = game.map.pos_agent[sense.agent_id].y;
-        uint z = game.map.pos_agent[sense.agent_id].z;
-        sense.agent_id = id;
-        sense.left_obj = map_get_content_at (
-            game.map, (struct pos){ .x = x - 1, .y = y, .z = z });
-        sense.right_obj = map_get_content_at (
-            game.map, (struct pos){ .x = x + 1, .y = y, .z = z });
-      }
-      /* Render */
-      if (game.is_display_room)
+      /* Clear agent action list */
+      for (int i = 0; i < 2; ++i)
         {
-          print_room (game);
+          game.act_agents[i] = (struct agent_action){ 0 };
         }
-      else
+      /* Fill agent sense into its memory */
+      sense (&game, game.player_controled_agent_id);
+      /* Render */
+      switch (game.display_mode)
         {
-          print_agent_senses (sense);
+        case GDM_MEMORY:
+          print_agent_memory (game.mem_agents[game.player_controled_agent_id]);
+          break;
+        case GDM_SENSES:
+          {
+            /* u8 mem = game.mem_agents[game.player_controled_agent_id].bits;
+             */
+            /* struct agent_senses sense = { 0 }; */
+
+            /* print_agent_senses (sense); */
+          }
+          break;
+        case GDM_ROOM:
+          print_room (game);
+          break;
+        default:
+          break;
         }
       /* Get user input */
       {
@@ -83,7 +101,16 @@ main (void)
             act->scream = (act->scream == AAS_SKIP ? AAS_SCREAM : AAS_SKIP);
             break;
           case 't':
-            game.is_display_room = !game.is_display_room;
+            {
+              if (game.display_mode == GDM_ROOM)
+                {
+                  game.display_mode = GDM_MEMORY;
+                }
+              else
+                {
+                  game.display_mode = GDM_ROOM;
+                }
+            }
             break;
           case 'q':
             goto quit_game;
@@ -181,11 +208,55 @@ void
 print_agent_senses (struct agent_senses sense)
 {
   clear ();
-  printw ("agent id: %d", sense.agent_id);
-  move (1, 0);
   printw ("left obj: '%c'", sense.left_obj ? sense.left_obj : ' ');
-  move (2, 0);
+  move (1, 0);
   printw ("right obj: '%c'", sense.right_obj ? sense.right_obj : ' ');
-  move (3, 0);
+  move (2, 0);
   printw ("heard scream: %s", sense.heard_scream ? "yes" : "no");
+}
+
+void
+sense (struct game *game, int agent_id)
+{
+  uint x = game->map.pos_agent[agent_id].x;
+  uint y = game->map.pos_agent[agent_id].y;
+  uint z = game->map.pos_agent[agent_id].z;
+  char left_obj = map_get_content_at (
+      game->map, (struct pos){ .x = x - 1, .y = y, .z = z });
+  char right_obj = map_get_content_at (
+      game->map, (struct pos){ .x = x + 1, .y = y, .z = z });
+
+  u8 m = 0x00;
+  switch (left_obj)
+    {
+    case 0:
+      m = (m & 0x3f) | (type_empty << 6);
+      break;
+    case '#':
+      m = (m & 0x3f) | (type_wall << 6);
+      break;
+    default:
+      m = (m & 0x3f) | (type_what << 6);
+      break;
+    }
+  switch (right_obj)
+    {
+    case 0:
+      m = (m & 0xcf) | (type_empty << 4);
+      break;
+    case '#':
+      m = (m & 0xcf) | (type_wall << 4);
+      break;
+    default:
+      m = (m & 0xcf) | (type_what << 4);
+      break;
+    }
+  game->mem_agents[agent_id].bits = m;
+}
+
+void
+print_agent_memory (struct mem8 mem)
+{
+  clear ();
+  printw ("%08b", mem.bits);
 }

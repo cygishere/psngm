@@ -5,7 +5,7 @@
 
 struct mem8
 {
-  u8 d;
+  u8 bits;
 };
 
 #endif /* MEM_H */
