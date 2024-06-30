@@ -21,21 +21,22 @@ struct map
 
 struct map map_new (uint length);
 void map_del (struct map map);
-static inline char map_get_content_at (const struct map map, uint x, uint y,
-                                       uint z);
-static inline void map_set_content_at (struct map *map, uint x, uint y, uint z,
+static inline char map_get_content_at (const struct map map, struct pos pos);
+static inline void map_set_content_at (struct map *map, struct pos pos,
                                        char c);
 
 char
-map_get_content_at (const struct map map, uint x, uint y, uint z)
+map_get_content_at (const struct map map, struct pos pos)
 {
-  return map.content[z * map.length * map.width + y * map.length + x];
+  return map
+      .content[pos.z * map.length * map.width + pos.y * map.length + pos.x];
 }
 
 void
-map_set_content_at (struct map *map, uint x, uint y, uint z, char c)
+map_set_content_at (struct map *map, struct pos pos, char c)
 {
-  map->content[z * map->length * map->width + y * map->length + x] = c;
+  map->content[pos.z * map->length * map->width + pos.y * map->length + pos.x]
+      = c;
   return;
 }
 

@@ -46,8 +46,10 @@ main (void)
         unsigned int y = game.map.pos_agent[sense.agent_id].y;
         unsigned int z = game.map.pos_agent[sense.agent_id].z;
         sense.agent_id = id;
-        sense.left_obj = map_get_content_at (game.map, x - 1, y, z);
-        sense.right_obj = map_get_content_at (game.map, x + 1, y, z);
+        sense.left_obj = map_get_content_at (
+            game.map, (struct pos){ .x = x - 1, .y = y, .z = z });
+        sense.right_obj = map_get_content_at (
+            game.map, (struct pos){ .x = x + 1, .y = y, .z = z });
       }
       /* Render */
       if (game.is_display_room)
@@ -121,9 +123,9 @@ move_left (struct game *game, int agent_id)
     {
       return;
     }
-  map_set_content_at (&game->map, (*pos).x, (*pos).y, (*pos).z, 0);
+  map_set_content_at (&game->map, *pos, 0);
   (*pos).x--;
-  map_set_content_at (&game->map, (*pos).x, (*pos).y, (*pos).z, 'a');
+  map_set_content_at (&game->map, *pos, 'a');
 
   return;
 }
@@ -136,9 +138,9 @@ move_right (struct game *game, int agent_id)
     {
       return;
     }
-  map_set_content_at (&game->map, (*pos).x, (*pos).y, (*pos).z, 0);
+  map_set_content_at (&game->map, *pos, 0);
   (*pos).x++;
-  map_set_content_at (&game->map, (*pos).x, (*pos).y, (*pos).z, 'a');
+  map_set_content_at (&game->map, *pos, 'a');
   return;
 }
 
@@ -156,7 +158,8 @@ print_room (struct game game)
         {
           for (unsigned int x = 0; x < game.map.length; ++x)
             {
-              chtype c = (chtype)map_get_content_at (game.map, x, y, z);
+              chtype c = (chtype)map_get_content_at (
+                  game.map, (struct pos){ .x = x, .y = y, .z = z });
               if (c)
                 {
                   mvaddch ((int)y, (int)x, c);

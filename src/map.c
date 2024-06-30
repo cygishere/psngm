@@ -17,25 +17,25 @@ map_new (uint length)
     {
       for (uint x = 0; x < map.length; ++x)
         {
-          map_set_content_at (&map, x, y, 0, '.');
+          map_set_content_at (&map, (struct pos){ .x = x, .y = y, .z = 0 },
+                              '.');
         }
     }
   for (uint y = 0; y < map.width; ++y)
     {
       for (uint x = 0; x < map.length; ++x)
         {
-          map_set_content_at (&map, x, y, 1, '#');
+          map_set_content_at (&map, (struct pos){ .x = x, .y = y, .z = 1 },
+                              '#');
         }
     }
   for (uint x = 1; x < map.length - 1; ++x)
     {
-      map_set_content_at (&map, x, 1, 1, 0);
-      map_set_content_at (&map, x, 3, 1, 0);
+      map_set_content_at (&map, (struct pos){ .x = x, .y = 1, .z = 1 }, 0);
+      map_set_content_at (&map, (struct pos){ .x = x, .y = 3, .z = 1 }, 0);
     }
-  map_set_content_at (&map, map.pos_agent[0].x, map.pos_agent[0].y,
-                      map.pos_agent[0].z, 'a');
-  map_set_content_at (&map, map.pos_agent[1].x, map.pos_agent[1].y,
-                      map.pos_agent[0].z, 'b');
+  map_set_content_at (&map, map.pos_agent[0], 'a');
+  map_set_content_at (&map, map.pos_agent[1], 'b');
 
   return map;
 }
