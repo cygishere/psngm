@@ -10,8 +10,9 @@ psngm_CFLAGS = $(shell pkg-config --cflags ncurses)
 psngm_LDFLAGS = -fsanitize=address,undefined,leak \
   $(shell pkg-config --libs ncurses)
 
-psngm_CFLAGS += -O2 -Wall -Wformat -Wformat=2 -Werror=format-security \
-  -Wconversion -Wimplicit-fallthrough -Wextra -g \
+psngm_CFLAGS += -O2 -Wall -Wextra -pedantic \
+  -Wformat -Wformat=2 -Werror=format-security \
+  -Wconversion -Wimplicit-fallthrough -g \
   -fstack-clash-protection -fstack-protector-strong \
   -Wl,-z,nodlopen -Wl,-z,noexecstack -Wl,-z,relro -Wl,-z,now
 
