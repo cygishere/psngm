@@ -1,4 +1,4 @@
-#+title: psn-gm - Prisoner's Game
+#+title: psngm - Prisoner's Game
 * Description
 This project creates a scenario where two agents must cooperate in order
 to survive.
