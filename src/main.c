@@ -1,15 +1,17 @@
 #include <assert.h>
 #include <curses.h>
+#include <limits.h>
 #include <stdbool.h>
 
 #include "agent.h"
+#include "map.h"
 
 static const int psn_room_length = 8;
 
 struct game
 {
   int player_controled_agent_id; /* -1 for no agent, 0 for a, 1 for b */
-  int agent_pos[2];
+  struct map map;
   bool is_display_room;
 };
 
@@ -17,11 +19,9 @@ void move_left (struct game *game, int agent_id);
 void move_right (struct game *game, int agent_id);
 void sense (struct game);
 
-void print_room_wall (int length);
-void print_room_space (int length);
 void print_room (struct game game);
 
-void print_agent_senses (struct game game, struct agent_senses sense);
+void print_agent_senses (struct agent_senses sense);
 
 int
 main (void)
@@ -33,17 +33,22 @@ main (void)
   curs_set (0);
 
   struct game game = { 0 };
+  game.map = map_new (psn_room_length + 2);
 
   int ch;
   while (1)
     {
       /* Fill agent sense */
       struct agent_senses sense = { 0 };
-      sense.agent_id = game.player_controled_agent_id;
-      sense.left_obj = game.agent_pos[sense.agent_id] == 0 ? '#' : '.';
-      sense.right_obj
-          = game.agent_pos[sense.agent_id] == psn_room_length - 1 ? '#' : '.';
-
+      {
+        int id = game.player_controled_agent_id;
+        unsigned int x = game.map.pos_agent[sense.agent_id].x;
+        unsigned int y = game.map.pos_agent[sense.agent_id].y;
+        unsigned int z = game.map.pos_agent[sense.agent_id].z;
+        sense.agent_id = id;
+        sense.left_obj = map_get_content_at (game.map, x - 1, y, z);
+        sense.right_obj = map_get_content_at (game.map, x + 1, y, z);
+      }
       /* Render */
       if (game.is_display_room)
         {
@@ -51,7 +56,7 @@ main (void)
         }
       else
         {
-          print_agent_senses (game, sense);
+          print_agent_senses (sense);
         }
       /* Get user input */
       struct agent_action act = { 0 };
@@ -104,28 +109,36 @@ main (void)
     }
 
 quit_game:
+  map_del (game.map);
   endwin ();
 }
 
 void
 move_left (struct game *game, int agent_id)
 {
-  if (game->agent_pos[agent_id] == 0)
+  struct pos *pos = &(game->map.pos_agent[agent_id]);
+  if ((*pos).x == 1)
     {
       return;
     }
-  game->agent_pos[agent_id]--;
+  map_set_content_at (&game->map, (*pos).x, (*pos).y, (*pos).z, 0);
+  (*pos).x--;
+  map_set_content_at (&game->map, (*pos).x, (*pos).y, (*pos).z, 'a');
+
   return;
 }
 
 void
 move_right (struct game *game, int agent_id)
 {
-  if (game->agent_pos[agent_id] == psn_room_length - 1)
+  struct pos *pos = &(game->map.pos_agent[agent_id]);
+  if ((*pos).x == game->map.length - 2)
     {
       return;
     }
-  game->agent_pos[agent_id]++;
+  map_set_content_at (&game->map, (*pos).x, (*pos).y, (*pos).z, 0);
+  (*pos).x++;
+  map_set_content_at (&game->map, (*pos).x, (*pos).y, (*pos).z, 'a');
   return;
 }
 
@@ -133,55 +146,37 @@ void
 print_room (struct game game)
 {
   clear ();
-  print_room_wall (psn_room_length);
 
-  move (1, 0);
-  print_room_space (psn_room_length);
-  move (2, 0);
-  print_room_wall (psn_room_length);
+  assert (game.map.width <= INT_MAX && "game.map.width cannot cast to int");
+  assert (game.map.length <= INT_MAX && "game.map.length cannot cast to int");
 
-  move (3, 0);
-  print_room_space (psn_room_length);
-  move (4, 0);
-  print_room_wall (psn_room_length);
-
-  mvaddch (1, game.agent_pos[0] + 1, 'a');
-  mvaddch (3, game.agent_pos[1] + 1, 'b');
+  for (unsigned int z = 0; z < game.map.height; ++z)
+    {
+      for (unsigned int y = 0; y < game.map.width; ++y)
+        {
+          for (unsigned int x = 0; x < game.map.length; ++x)
+            {
+              chtype c = (chtype)map_get_content_at (game.map, x, y, z);
+              if (c)
+                {
+                  mvaddch ((int)y, (int)x, c);
+                }
+            }
+        }
+    }
 
   refresh ();
 }
 
 void
-print_room_wall (int length)
-{
-  addch ('#');
-  for (int i = 0; i < length; ++i)
-    {
-      addch ('#');
-    }
-  addch ('#');
-}
-
-void
-print_room_space (int length)
-{
-  addch ('#');
-  for (int i = 0; i < length; ++i)
-    {
-      addch ('.');
-    }
-  addch ('#');
-}
-
-void
-print_agent_senses (struct game game, struct agent_senses sense)
+print_agent_senses (struct agent_senses sense)
 {
   clear ();
   printw ("agent id: %d", sense.agent_id);
   move (1, 0);
-  printw ("left obj: '%c'", sense.left_obj);
+  printw ("left obj: '%c'", sense.left_obj ? sense.left_obj : ' ');
   move (2, 0);
-  printw ("right obj: '%c'", sense.right_obj);
+  printw ("right obj: '%c'", sense.right_obj ? sense.right_obj : ' ');
   move (3, 0);
   printw ("heard scream: %s", sense.heard_scream ? "yes" : "no");
 }
