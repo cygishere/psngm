@@ -63,3 +63,13 @@ If there is a left signal, b's secret postion is the far left, otherwise the far
 
   ai controled bot.
 
+
+* How to build
+** Using nix (recommended)
+#+begin_src shell
+nix build -L && ./result/bin/psngm
+#+end_src
+** Using Autotools directly
+#+begin_src shell
+autoreconf -i && ./configure && make && ./psngm
+#+end_src
