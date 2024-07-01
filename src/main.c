@@ -27,11 +27,14 @@ struct game
   struct map map;
   struct mem8 mem_agents[2];
   struct agent_action act_agents[2];
+  int noise_level_cur;  /* 0 for no scream, 1 for 1 agent scream and so on */
+  int noise_level_next; /* 0 for no scream, 1 for 1 agent scream and so on */
   enum game_display_mode display_mode;
 };
 
 void move_left (struct game *game, int agent_id);
 void move_right (struct game *game, int agent_id);
+void scream (struct game *game, int agent_id);
 void sense (struct game *game, int agent_id);
 
 void print_room (struct game game);
@@ -54,11 +57,14 @@ main (void)
   int ch;
   while (1)
     {
-      /* Clear agent action list */
+      /* Clear agent move action */
       for (int i = 0; i < 2; ++i)
         {
-          game.act_agents[i] = (struct agent_action){ 0 };
+          game.act_agents[i].move = AAM_SKIP;
         }
+      /* Set some game state */
+      game.noise_level_cur = game.noise_level_next;
+      game.noise_level_next = 0;
       /* Fill agent sense into its memory */
       sense (&game, game.player_controled_agent_id);
       /* Render */
@@ -136,6 +142,7 @@ main (void)
           switch (act->scream)
             {
             case AAS_SCREAM:
+              scream (&game, i);
               break;
             default:
               break;
@@ -175,6 +182,12 @@ move_right (struct game *game, int agent_id)
   (*pos).x++;
   map_set_content_at (&game->map, *pos, 'a');
   return;
+}
+
+void
+scream (struct game *game, int agent_id)
+{
+  game->noise_level_next += 1;
 }
 
 void
@@ -250,6 +263,14 @@ sense (struct game *game, int agent_id)
     default:
       m = (m & 0xcf) | (type_what << 4);
       break;
+    }
+  if (game->noise_level_cur > 0)
+    {
+      m = (m & 0xfb) | (0x01 << 3);
+    }
+  else
+    {
+      m = (m & 0xfb) | (0x00 << 3);
     }
   game->mem_agents[agent_id].bits = m;
 }
